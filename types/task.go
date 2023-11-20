@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"strconv"
 
 	"github.com/facundocarballo/golang-mysql-connection/crypto"
 	"github.com/facundocarballo/golang-mysql-connection/db"
@@ -55,11 +54,9 @@ func CreateTask(
 		return false
 	}
 
-	var user User
-	user.Id = task.Owner
-
-	if !crypto.ValidateJWT(*tokenString, user.Id, "id") {
-		http.Error(w, "JWT not valid.", http.StatusBadRequest)
+	id := crypto.GetIdFromJWT(*tokenString)
+	if id == nil {
+		http.Error(w, "Error JWT not Valid", http.StatusBadRequest)
 		return false
 	}
 
@@ -67,7 +64,7 @@ func CreateTask(
 		db.INSERT_TASK_STATEMENT,
 		task.Name,
 		task.Description,
-		task.Owner,
+		*id,
 	)
 
 	if err != nil {
@@ -97,34 +94,18 @@ func GetTasks(
 	r *http.Request,
 	database *sql.DB,
 ) bool {
-	queryParams := r.URL.Query()
-
-	ownerString := queryParams.Get("owner")
-	if ownerString == "" {
-		http.Error(w, "owner parameter not found.", http.StatusBadRequest)
-		return false
-	}
-
-	owner, err := strconv.Atoi(ownerString)
-	if err != nil {
-		http.Error(w, "owner parameter have to be a number", http.StatusBadRequest)
-		return false
-	}
-
 	tokenString := crypto.GetJWTFromRequest(w, r)
 	if tokenString == nil {
 		return false
 	}
 
-	var user User
-	user.Id = owner
-
-	if !crypto.ValidateJWT(*tokenString, user.Id, "id") {
-		http.Error(w, "JWT not valid.", http.StatusBadRequest)
+	id := crypto.GetIdFromJWT(*tokenString)
+	if id == nil {
+		http.Error(w, "Error JWT not Valid", http.StatusBadRequest)
 		return false
 	}
 
-	rows, err := database.Query("SELECT id, name, description, owner FROM Task WHERE owner = (?)", owner)
+	rows, err := database.Query("SELECT id, name, description, owner FROM Task WHERE owner = (?)", id)
 	if err != nil {
 		panic(err.Error())
 	}

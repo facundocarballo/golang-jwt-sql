@@ -57,6 +57,35 @@ func ValidateJWT(tokenString string, id int, key string) bool {
 	}
 }
 
+func GetIdFromJWT(tokenString string) *int {
+	secretKey := []byte(os.Getenv("JWT_KEY"))
+
+	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("sign method not valid")
+		}
+		return secretKey, nil
+	})
+
+	if err != nil {
+		return nil
+	}
+
+	if !token.Valid {
+		return nil
+	}
+
+	// valid token
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil
+	}
+
+	id := int(claims["id"].(float64))
+
+	return &id
+}
+
 func GetJWTFromRequest(w http.ResponseWriter, r *http.Request) *string {
 	authHeader := r.Header.Get("Authorization")
 
