@@ -25,3 +25,8 @@ git init
         _ "github.com/go-sql-driver/mysql"
     )
 ```
+5. Install JWT
+```bash
+    go get github.com/golang-jwt/jwt/v4
+```
+> This is used in the **crypto** module to generate and get the JWT.
