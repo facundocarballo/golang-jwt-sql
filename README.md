@@ -38,6 +38,7 @@ git init
 
 ## API Calls - Examples
 ### Login
+#### POST REQUEST
 As users we have to demostrate to the server that we are a valid user.
 We have to make a POST REQUEST to this endpoint **'/login'** and sending in the body of the request this:
 ```json
@@ -49,6 +50,17 @@ We have to make a POST REQUEST to this endpoint **'/login'** and sending in the 
 > This data it's just an example, the email and passwords have to match with the data stored in the database.
 
 This endpoint will return a JWT if all goes well.
+
+Using curl will be something like this.
+```bash
+    curl -X POST \
+    -H "Content-Type: application/json" \
+    -d '{
+        "email": "some@email.com",
+        "password": "strongPassword"
+    }' \
+    http://localhost:3690/login
+```
 
 ### Task
 This endpoint works for create a new task, and also for getting all the task associate with a particular user.
